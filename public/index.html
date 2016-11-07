@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<title>
+</title>
+<head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCckvCIsj1GR14B3HdJHhKXIEZIk7KRVb8"></script>
+<script>
+var geocoder = new google.maps.Geocoder();
+$(document).ready(function(){
+    var address= [];
+    $("#showMap").click(function(){
+        $.get({url: "http://localhost:8080/api/todos", success: function(data,status){
+            $.each(data, function(index, item){
+                if (item["text"] != undefined) {
+                    address.push(item['text']);
+                }
+            });
+          map();
+        }});
+    });
+    $("#addMarker").click(function(){
+        var value = $('#marker').val();
+        if(value == null || value == ""){alert("empty data!");return false;} 
+        $.post({url: "http://localhost:8080/api/todos", data:"text="+value, success: function(data,status){
+            $.each(data, function(index, item){
+                if (item["text"] != undefined) {
+                    address.push(item['text']);
+                }
+            });
+           map();
+        }});
+    });
+    $("#del").click(function(){
+        var value = $('#delMaker').val();
+        if(value == null){alert("empty data!");return false;} 
+        $.post({url: "http://localhost:8080/api/todos",data:"text="+value,success: function(data,status){
+            $.each(data, function(index, item){
+                if (item["text"] != undefined) {
+                    address.push(item['text']);
+                }
+            });
+           map();
+        }});
+    });
+  function map(){
+    var mapCanvas = document.getElementById("map");
+    var myCenter = new google.maps.LatLng(52.370216,4.895168);
+    var mapOptions = {center: myCenter, zoom: 3}; 
+    var map = new google.maps.Map(mapCanvas,mapOptions);
+
+    for(var i = 0;i<address.length;i++){
+      geocoder.geocode( { 'address': address[i]}, function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+                latitude = results[0].geometry.location.lat();
+                longitude = results[0].geometry.location.lng();
+            
+              var myMarker = new google.maps.LatLng(latitude,longitude);
+              var marker = new google.maps.Marker({
+                  position: myMarker,
+                  animation: google.maps.Animation.BOUNCE
+              });
+              marker.setMap(map);
+            }
+      }); 
+    }
+  }
+
+
+
+});
+</script>
+</head>
+<body>
+<div id="map" style="width:100%;height:500px"></div><br>
+<button id="showMap">Display Google Map</button>&nbsp&nbsp&nbsp&nbsp
+<button id="addMarker">Add Marker</button>
+<input type="text" id="marker"/>&nbsp&nbsp&nbsp&nbsp
+<button id="del">Delete Maker</button>
+<input type="text" id="delMaker"/>
+</body>
+</html>
+
+
